@@ -123,44 +123,44 @@ glimpse(nyt_mask_survey)</code></pre>
 # The id field is the FIPS code for the county
 county_map %&gt;% 
   sample_n(5)</code></pre>
-<pre><code>##       long      lat  order  hole piece            group    id
-## 1  -202270  -219350 111805 FALSE     1 0500000US31161.1 31161
-## 2   862570   173679 187913 FALSE     1 0500000US55041.1 55041
-## 3   904272 -1325666  98008 FALSE     1 0500000US28089.1 28089
-## 4  1320073  -652200  62818 FALSE     1 0500000US21005.1 21005
-## 5 -1441378   134610 137211 FALSE     1 0500000US41023.1 41023</code></pre>
+<pre><code>##      long      lat  order  hole piece            group    id
+## 1  612146   -70270  95172 FALSE     1 0500000US27157.1 27157
+## 2 1550336 -1062140  43861 FALSE     1 0500000US13195.1 13195
+## 3 -693019  -776699  33017 FALSE     1 0500000US08111.1 08111
+## 4 1520737  -203749 130484 FALSE     1 0500000US39035.1 39035
+## 5  779996  -916167  23426 FALSE     1 0500000US05135.1 05135</code></pre>
 <pre class="r"><code>county_data %&gt;%
     sample_n(5)</code></pre>
-<pre><code>##      id               name state census_region      pop_dens   pop_dens4
-## 1 16031      Cassia County    ID          West [    0,   10) [  0,   17)
-## 2 51085     Hanover County    VA         South [  100,  500) [118,71672]
-## 3 37095        Hyde County    NC         South [    0,   10) [  0,   17)
-## 4 32015      Lander County    NV          West [    0,   10) [  0,   17)
-## 5 22103 St. Tammany Parish    LA         South [  100,  500) [118,71672]
+<pre><code>##      id              name state census_region      pop_dens   pop_dens4
+## 1 06099 Stanislaus County    CA          West [  100,  500) [118,71672]
+## 2 12077    Liberty County    FL         South [   10,   50) [  0,   17)
+## 3 36091   Saratoga County    NY     Northeast [  100,  500) [118,71672]
+## 4 01015    Calhoun County    AL         South [  100,  500) [118,71672]
+## 5 20161      Riley County    KS       Midwest [  100,  500) [118,71672]
 ##     pop_dens6   pct_black    pop female white black travel_time land_area
-## 1 [  9,   25) [ 0.0, 2.0)  23540   49.3  95.4   0.6        16.3      2565
-## 2 [215,71672] [ 5.0,10.0) 101918   51.0  86.9   9.6        25.3       469
-## 3 [  9,   25) [25.0,50.0)   5676   45.0  67.8  30.0        19.9       613
-## 4 [  0,    9) [ 0.0, 2.0)   6009   48.8  90.9   1.0        28.1      5490
-## 5 [215,71672] [10.0,15.0) 245829   51.4  84.4  12.0        31.8       846
+## 1 [215,71672] [ 2.0, 5.0) 531997   50.5  84.3   3.2        26.6      1495
+## 2 [  9,   25) [15.0,25.0)   8360   38.3  77.7  19.1        28.7       836
+## 3 [215,71672] [ 0.0, 2.0) 224921   50.6  94.1   1.7        24.5       810
+## 4 [ 82,  215) [15.0,25.0) 115916   51.7  76.0  20.9        22.5       606
+## 5 [ 82,  215) [ 5.0,10.0)  75194   46.7  84.5   6.9        16.2       610
 ##   hh_income su_gun4 su_gun6  fips votes_dem_2016 votes_gop_2016
-## 1     42039 [ 8,11) [ 8,10) 16031           1036           5949
-## 2     75070 [ 8,11) [ 8,10) 51085          19360          39592
-## 3     42279 [ 0, 5) [ 0, 4) 37095            956           1275
-## 4     72742 [11,54] [12,54] 32015            403           1828
-## 5     60799 [ 8,11) [ 8,10) 22103          27716          90914
+## 1     49297 [ 0, 5) [ 4, 7)  6099          73939          72960
+## 2     39681 [ 5, 8) [ 7, 8) 12077            651           2542
+## 3     69826 [ 0, 5) [ 4, 7) 36091          46546          51088
+## 4     39962 [11,54] [10,12)  1015          13197          32803
+## 5     43962 [ 0, 5) [ 4, 7) 20161           8892           9817
 ##   total_votes_2016 per_dem_2016 per_gop_2016 diff_2016 per_dem_2012
-## 1             8178        0.127        0.727      4913        0.130
-## 2            62313        0.311        0.635     20232        0.310
-## 3             2273        0.421        0.561       319        0.491
-## 4             2413        0.167        0.758      1425        0.247
-## 5           124389        0.223        0.731     63198        0.228
-##   per_gop_2012 diff_2012 winner partywinner16 winner12 partywinner12 flipped
-## 1        0.853      6057  Trump    Republican   Romney    Republican      No
-## 2        0.677     21637  Trump    Republican   Romney    Republican      No
-## 3        0.502        26  Trump    Republican   Romney    Republican      No
-## 4        0.730      1046  Trump    Republican   Romney    Republican      No
-## 5        0.750     58987  Trump    Republican   Romney    Republican      No</code></pre>
+## 1           156141        0.474        0.467       979        0.492
+## 2             3295        0.198        0.771      1891        0.287
+## 3           104089        0.447        0.491      4542        0.501
+## 4            47376        0.279        0.692     19606        0.335
+## 5            20475        0.434        0.479       925        0.424
+##   per_gop_2012 diff_2012  winner partywinner16 winner12 partywinner12 flipped
+## 1        0.484      1060 Clinton      Democrat    Obama      Democrat      No
+## 2        0.701      1359   Trump    Republican   Romney    Republican      No
+## 3        0.480      2047   Trump    Republican    Obama      Democrat     Yes
+## 4        0.655     14772   Trump    Republican   Romney    Republican      No
+## 5        0.551      2570   Trump    Republican   Romney    Republican      No</code></pre>
 <pre class="r"><code>glimpse(county_data)</code></pre>
 <pre><code>## Rows: 3,195
 ## Columns: 32
