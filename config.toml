@@ -94,25 +94,25 @@ disqusShortname = ""
     [[params.tiles.showcase]]
       title = "Is climate change real ?"
       subtitle = "Using NASA data to analyze global warming"
-      image = "pic11.jpg"
+      image = "climate.jpg"
       url = "blogs/climate_change"
 
     [[params.tiles.showcase]]
       title = "Carhart four-factor model in Covid-19 times"
       subtitle = "Are financial markets driven by factors during the pandemic ?"
-      image = "pic02.jpg"
+      image = "carhart.jpg"
       url = "blogs/ff_carhart"
 
     [[params.tiles.showcase]]
       title = "Pay discrimination at Omega Group PLC"
       subtitle = "How to explain the difference between men and women executives salaries at Omega Group PLC ?"
-      image = "pic03.jpg"
+      image = "omega.jpg"
       url = "blogs/Omega"
 
     [[params.tiles.showcase]]
       title = "Physical activity benefits on US high schoolers health"
       subtitle = "An analysis of the relationship between health and physical activity using the Youth Risk Behavior Surveillance System (YRBSS) survey"
-      image = "pic11.jpg"
+      image = "sport.jpg"
       url = "blogs/high_schoolers_health"
 
   [params.blog]
