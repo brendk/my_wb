@@ -1,7 +1,7 @@
 ---
 title: |
-  | How accurate is the Carhart four-factor model at explaining 
-  | securities returns in Covid-19 times ?
+  <center> How accurate is the Carhart four-factor model at explaining </center>
+  <center> securities returns in Covid-19 times ? Looooo </center>
 output:
   html_document:
     theme: flatly
@@ -42,6 +42,8 @@ It is an extension to the Fama-French three-factor model, designed by Eugene Fam
 <center>
 
 $R_{i} = R_{f} + \beta_{1} \cdot Mkt + \beta_{2} \cdot HML + \beta_{3} \cdot SMB + \beta_{4} \cdot MOM + \epsilon$
+
+Ri = Rf + B1 * Mkt + B2 * HML + B3 * SMB + B4 * MOM + E
 
 </center>
 
