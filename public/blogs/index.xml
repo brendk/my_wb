@@ -67,5 +67,16 @@
 The Carhart four-factor modelThe Carhart four-factor model is a multifactor model used to explain securities returns.It is an extension to the Fama-French three-factor model, designed by Eugene Fama and Keneth French in 1992, including an additional factor: the momentum.</description>
     </item>
     
+    <item>
+      <title>Pay discrimination at Omega Group PLC</title>
+      <link>https://brendk.netlify.app/blogs/omega/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://brendk.netlify.app/blogs/omega/</guid>
+      <description>Is there a significant difference between the salaries of men and women at Omega Group PLC ?Following the release of Omega Group PLC salary data, a quick analysis revealed that men executives salaries were USD 8’700 higher on average.
+As it seems to be a considerable difference, we will investigate whether women executives are being discriminated in this company.
+Shall we find a significant difference between the two groups, we will look at potential explanations to determine if other factors than gender can explain this difference.</description>
+    </item>
+    
   </channel>
 </rss>

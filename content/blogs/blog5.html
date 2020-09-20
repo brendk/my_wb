@@ -55,44 +55,44 @@ glimpse(nyt_mask_survey)</code></pre>
 # The id field is the FIPS code for the county
 county_map %&gt;% 
   sample_n(5)</code></pre>
-<pre><code>##      long      lat order  hole piece            group    id
-## 1  918692 -1211670 96395 FALSE     1 0500000US28015.1 28015
-## 2  452670   276876 92298 FALSE     1 0500000US27061.1 27061
-## 3  823086 -1151526 18990 FALSE     1 0500000US05001.1 05001
-## 4  923076 -1386764 98757 FALSE     1 0500000US28127.1 28127
-## 5 1120546  -788195 68302 FALSE     1 0500000US21177.1 21177</code></pre>
+<pre><code>##      long      lat  order  hole piece            group    id
+## 1 1497603 -1028086  42566 FALSE     1 0500000US13139.1 13139
+## 2  258965 -1226505 134582 FALSE     1 0500000US40085.1 40085
+## 3 1636511  -653703 182758 FALSE     1 0500000US54055.1 54055
+## 4   57970 -1087669 136092 FALSE     1 0500000US40149.1 40149
+## 5  766863   156620 190233 FALSE     1 0500000US55125.1 55125</code></pre>
 <pre class="r"><code>county_data %&gt;%
     sample_n(5)</code></pre>
-<pre><code>##      id              name state census_region      pop_dens   pop_dens4
-## 1 46067 Hutchinson County    SD       Midwest [    0,   10) [  0,   17)
-## 2 31013  Box Butte County    NE       Midwest [   10,   50) [  0,   17)
-## 3 21085    Grayson County    KY         South [   50,  100) [ 45,  118)
-## 4 06003     Alpine County    CA          West [    0,   10) [  0,   17)
-## 5 29165     Platte County    MO       Midwest [  100,  500) [118,71672]
-##     pop_dens6   pct_black   pop female white black travel_time land_area
-## 1 [  0,    9) [ 0.0, 2.0)  7200   50.8  96.9   0.7        18.0       813
-## 2 [  9,   25) [ 0.0, 2.0) 11340   50.0  92.4   0.6        11.6      1075
-## 3 [ 45,   82) [ 0.0, 2.0) 26194   49.7  97.3   1.2        25.5       497
-## 4 [  0,    9) [ 0.0, 2.0)  1116   47.4  71.8   0.4        23.7       738
-## 5 [215,71672] [ 5.0,10.0) 94788   50.7  87.7   6.4        23.3       420
+<pre><code>##      id                   name state census_region      pop_dens   pop_dens4
+## 1 02070 Dillingham Census Area    AK          West [    0,   10) [  0,   17)
+## 2 13199      Meriwether County    GA         South [   10,   50) [ 17,   45)
+## 3 17129          Menard County    IL       Midwest [   10,   50) [ 17,   45)
+## 4 48297        Live Oak County    TX         South [   10,   50) [  0,   17)
+## 5 13000                     11    GA         South [  100,  500) [118,71672]
+##     pop_dens6   pct_black      pop female white black travel_time land_area
+## 1 [  0,    9) [ 0.0, 2.0)     4988   48.1  18.4   0.4         8.7     18569
+## 2 [ 25,   45) [25.0,50.0)    21198   52.1  58.7  39.1        30.2       501
+## 3 [ 25,   45) [ 0.0, 2.0)    12570   51.4  97.1   1.1        27.0       314
+## 4 [  9,   25) [ 2.0, 5.0)    12091   46.0  92.4   4.8        27.3      1040
+## 5 [ 82,  215) [25.0,50.0) 10097343   51.1  62.5  31.4        27.0     57513
 ##   hh_income su_gun4 su_gun6  fips votes_dem_2016 votes_gop_2016
-## 1     42451 [ 0, 5) [ 0, 4) 46067            692           2517
-## 2     46373 [ 8,11) [ 8,10) 31013            953           3550
-## 3     32399 [11,54] [12,54] 21085           1959           8219
-## 4     58636 [ 0, 5) [ 0, 4)  6003            318            211
-## 5     67721 [ 5, 8) [ 4, 7) 29165          18915          24975
+## 1     54150 [11,54] [12,54]  2070          93003         130413
+## 2     37333 [ 8,11) [ 8,10) 13199           3800           5216
+## 3     58190 [ 5, 8) [ 4, 7) 17129           1808           4230
+## 4     42829 [11,54] [10,12) 48297            739           3450
+## 5     49179    &lt;NA&gt;    &lt;NA&gt; 13000             NA             NA
 ##   total_votes_2016 per_dem_2016 per_gop_2016 diff_2016 per_dem_2012
-## 1             3365        0.206        0.748      1825        0.269
-## 2             4761        0.200        0.746      2597        0.360
-## 3            10564        0.185        0.778      6260        0.296
-## 4              575        0.553        0.367       107        0.601
-## 5            46641        0.406        0.535      6060        0.421
-##   per_gop_2012 diff_2012  winner partywinner16 winner12 partywinner12 flipped
-## 1        0.716      1528   Trump    Republican   Romney    Republican      No
-## 2        0.616      1161   Trump    Republican   Romney    Republican      No
-## 3        0.691      3660   Trump    Republican   Romney    Republican      No
-## 4        0.365       153 Clinton      Democrat    Obama      Democrat      No
-## 5        0.562      6446   Trump    Republican   Romney    Republican      No</code></pre>
+## 1           246588        0.377        0.529     37410           NA
+## 2             9181        0.414        0.568      1416        0.467
+## 3             6423        0.281        0.659      2422        0.341
+## 4             4267        0.173        0.809      2711        0.223
+## 5               NA           NA           NA        NA           NA
+##   per_gop_2012 diff_2012 winner partywinner16 winner12 partywinner12 flipped
+## 1           NA        NA  Trump    Republican   Romney    Republican      No
+## 2        0.524       527  Trump    Republican   Romney    Republican      No
+## 3        0.642      1849  Trump    Republican   Romney    Republican      No
+## 4        0.768      2238  Trump    Republican   Romney    Republican      No
+## 5           NA        NA   &lt;NA&gt;          &lt;NA&gt;     &lt;NA&gt;          &lt;NA&gt;    &lt;NA&gt;</code></pre>
 <pre class="r"><code>glimpse(county_data)</code></pre>
 <pre><code>## Rows: 3,195
 ## Columns: 32
