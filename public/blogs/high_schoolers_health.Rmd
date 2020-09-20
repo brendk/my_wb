@@ -1,0 +1,267 @@
+---
+title: "Physical activity benefits on US high schoolers health"
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    code_folding: show
+---
+
+
+```{r, setup, echo=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+
+```{r load-libraries, echo=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(GGally)
+library(readxl)
+library(here)
+library(skimr)
+library(janitor)
+library(broom)
+library(lubridate)
+library(tidyquant)
+library(infer)
+library(openintro)
+```
+
+
+We will analyse the [Youth Risk Behavior Surveillance System (YRBSS)](https://www.cdc.gov/healthyyouth/data/yrbs/index.htm) survey, released every two years by the Centers for Disease Control and Prevention conduct. This dataset contains several features about American high schoolers that will help us analyze health patterns.
+
+First we have a look at the dataset to get a feel for missing values, summary statistics of numerical variables, and a very rough histogram. 
+
+```{r, fig1}
+data(yrbss)
+glimpse(yrbss)
+view(yrbss)
+skim(yrbss)
+```
+
+## Exploratory Data Analysis
+
+First we analyze the `weight` of participants in kilograms and find 1004 NA's. 
+
+```{r, eda_on_weight, fig2}
+#we analyse the dataframe
+summary(yrbss$weight)
+
+#we plot a graph to visualise the weight
+yrb<-yrbss %>%
+  filter(!is.na(weight))
+yrb %>% 
+  ggplot(aes(x=weight))+
+  geom_boxplot()+
+  labs (
+    title = "Distribution of weight in high school students",
+    subtitle= "Grades 9 to 12",
+    caption="Source: Youth Risk Behavior Surveillance System, CDC",
+    x= "Weight (Kg)"
+  )+
+  theme_clean()
+
+#plotting the density
+ggplot(yrb,aes(x=weight))+
+  geom_density()+
+  labs (
+    title = "Distribution of weight in high school students",
+    subtitle= "Grades 9 to 12",
+    caption="Source: Youth Risk Behavior Surveillance System, CDC",
+    x="Weight (Kg)",
+    y="Density"
+  )+
+  theme_clean()
+
+
+
+#calculating mean and median of weight 
+mean_weight <- mean(yrb$weight)
+median_weight <- median(yrb$weight)
+
+paste("The mean of the high schoolers is:", mean_weight)
+paste("The median of the high schoolers is: ", median_weight)
+paste("Due to the mean, median and the density plot we can say that most high schoolers weigh around 64 kilograms ")
+
+```
+
+We now have a look at the relationship between a high schooler’s weight and their physical activity.
+
+```{r, fig3}
+summary(yrb$physically_active_7d)
+
+
+#we convert the column yrb$physically_active_7d into a factor
+yrb$physically_active_7d<-as.factor(yrb$physically_active_7d)
+
+
+#boxplot showing relationship between high schooler’s weight and their physical activity
+yrb %>% 
+filter(!is.na(physically_active_7d)) %>% 
+ggplot(aes(x=physically_active_7d,y=weight))+
+  geom_boxplot()+
+  labs (
+    title = "Relationship between high schooler’s weight and their physical activity ",
+    subtitle= "Grades 9 to 12",
+    caption="Source: Youth Risk Behavior Surveillance System, CDC",
+    y="Weight (Kg)",
+    x="Physical Activity (days active per week)"
+  )+
+  theme_clean()
+
+```
+
+
+Create a new colun that will be `yes` if the highschoolers are physically active for at least 3 days a week, and `no` otherwise.
+
+  
+```{r, fig4}
+#add column that calculates the students who are physically active for at least 3 days a week and the ones who arent 
+yrbss <- yrbss %>% 
+  mutate(physical_3plus = ifelse(physically_active_7d >= 3, "yes", "no"))
+
+
+
+```
+
+We now calculate a 95% confidence interval for the population proportion of high schools that are *NOT* active 3 or more days per week.
+
+```{r, fig5}
+#calculating CI 95% for the population proportion of high schools that are not active 3 or more days per week
+stats<-yrbss %>% filter(!is.na(physical_3plus)) %>% 
+  group_by(physical_3plus) %>% 
+  summarise(count = n()) %>% 
+  mutate(prop= count/sum(count))
+
+se=sqrt(stats$prop[1]*(1-stats$prop[1])/stats$count[1])
+ciupper=stats$prop[1]+1.96*se
+cilower=stats$prop[1]-1.96*se
+
+paste(" 95% confidence interval for the population proportion of high schools that are not active 3 or more days per week-", "Lower:" , cilower , " Upper: ", ciupper)
+```
+
+  
+We now make a boxplot of `physical_3plus` vs. `weight`. We can see that there is a relationship between these two variables. We can tell that the high schoolers who excercise more are more likely due weigh more. Our assumption is the additional muscle weigh of those. 
+
+
+```{r, boxplot, fig6}
+
+#boxplot
+yrbss %>% 
+  filter(!is.na(physical_3plus)) %>% 
+  ggplot(aes(x= physical_3plus, y= weight))+
+  geom_boxplot()+
+  theme_clean()+
+  labs(
+    title = "Students who exercise more frequently have a higher median weight!",
+    subtitle= "Grades 9 to 12",
+    caption="Source: Youth Risk Behavior Surveillance System, CDC",
+    y="Weight (Kg)",
+    x="Exercises more than 3 days a week?"
+  )
+ 
+```
+
+## Confidence Interval
+
+Boxplots show how the medians of the two distributions compare, but we can also compare the means of the distributions using either a confidence interval or a hypothesis test. 
+
+
+```{r, fig7}
+# we chose to compare the confidence intervals of both means or the ones excersing more and for the ones who excercise less
+yrbss %>%
+  group_by(physical_3plus) %>%
+  filter(!is.na(physical_3plus)) %>% 
+  summarise(mean_weight = mean(weight, na.rm = TRUE),
+            sd_weight = sd(weight, na.rm=TRUE),
+            count = n(),
+            se_weight = sd_weight/sqrt(count),
+            t_critical = qt(0.975, count-1), 
+            margin_of_error = t_critical * se_weight,
+            lower = mean_weight - t_critical * se_weight,
+            upper = mean_weight + t_critical * se_weight
+            )
+
+```
+
+There is an observed difference of about 1.77kg (68.44 - 66.67), and we notice that the two confidence intervals do not overlap. It seems that the difference is at least 95% statistically significant. Let us also conduct a hypothesis test.
+
+## Hypothesis test with formula
+
+Write the null and alternative hypotheses for testing whether mean weights are different for those who exercise at least times a week and those who don’t.
+
+```{r, fig8}
+#hyothesis testing for the whether mean weights are different for those who exercise at least times a week and those who don’t
+t.test(weight ~ physical_3plus, data = yrbss)
+```
+
+
+## Hypothesis test with `infer`
+
+
+Next, we will introduce a new function, `hypothesize`, that falls into the infer workflow. But first, we need to initialize the test, which we will save as `obs_diff`.
+
+```{r}
+obs_diff <- yrbss %>%
+  specify(weight ~ physical_3plus) %>%
+  calculate(stat = "diff in means", order = c("yes", "no"))
+
+```
+
+We now simulate the test on the null distribution, which we will save as null.
+
+
+```{r}
+null_dist <- yrbss %>%
+  specify(weight ~ physical_3plus) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("yes", "no"))
+
+```
+
+
+We can visualize this null distribution with the following code:
+
+```{r, fig9}
+ggplot(data = null_dist, aes(x = stat)) +
+  geom_histogram() +
+  theme_clean()+
+  labs(
+    title = "Visualization of the null distribution",
+    y="Count",
+    x="Difference in means"
+  )
+
+```
+
+Now that the test is initialized and the null distribution formed, we can visualize to see how many of these null permutations have a difference of at least `obs_stat` of `r obs_diff %>% pull() %>% round(2)`?
+
+We can also calculate the p-value for your hypothesis test using the function `infer::get_p_value()`.
+
+```{r, fig10}
+
+null_dist %>% visualize() +
+  shade_p_value(obs_stat = obs_diff, direction = "two-sided")
+
+null_dist %>%
+  get_p_value(obs_stat = obs_diff, direction = "two_sided")
+
+```
