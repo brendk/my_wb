@@ -1,0 +1,438 @@
+---
+title: "How accurate is the Carhart four-factor model at explaining securities returns in Covid-19 times ?"
+author: "Brendan Kermorvan"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    toc: yes
+    toc_float: yes
+---
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+# Executive Summary 
+
+
+The goal of this project is to assess the ability of the Carhart 4 factor model in explaining stock returns. More precisely, we want to quantify the impact of Covid-19 on this accuracy. 
+Are financial markets driven by factors during the pandemic ? What about previous crisis ?
+
+# The Carhart four-factor model
+
+
+The Carhart four-factor model is a multifactor model used to explain securities returns. 
+It is an extension to the Fama-French three-factor model, designed by Eugene Fama and Keneth French in 1992, including an additional factor: the momentum.
+
+<center>
+
+$R_{i} = R_{f} + \beta_{1} \cdot Mkt + \beta_{2} \cdot HML + \beta_{3} \cdot SMB + \beta_{4} \cdot MOM + \epsilon$
+
+</center>
+
+The four factors in the Carhart model are:
+
+* Mkt: Excess return on the market portfolio
+* HML: "High minus low", spread in return between value stocks and growth stocks, (high vs low book-to-market ratios)
+* SMB: "Small minus big", excess return of small vs high market capitalization firms
+* MOM: Also called UMD ("up minus down"), momentum factor, premium of highest performing firms on lowest performing ones
+
+# Research methodology
+
+As the equation of the Carhart four-factor model is a linear polynomial, we will use a linear regression model to assess its ability in explaining securities returns.
+After downloading and cleaning the four factors data, we will select several stocks on which to assess the model.
+The R squared of the regression model will be used in our assessment, as it denotes the percentage of the stocks returns variance explained by the four factors.
+
+# Importation relevant libraries
+
+```{r load-libraries, message=FALSE, warning=FALSE}
+
+library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(janitor)
+library(vroom)
+library(formattable)
+
+```
+
+
+# Exploratory Data Analysis
+
+## Loading factors data and looking at raw data
+
+The factors data was downloaded in CSV format from the Fama-French database hosted on the WRDS platform.
+Along with the four factors, our dataset also include the $R_{f}$ variable, the risk-free interest rate.
+Due to the update frequency, only factor data up to June 2020 was available at time of study. We will therefore define 1 year as 12 months up to the end of June (2020 data will be from July 1st 2019 to June 30th 2020).
+
+```{r load-factors-data, message=FALSE, warning=FALSE}
+
+factors_data <- vroom("factors_data.csv") %>% 
+    clean_names()
+
+```
+
+We first observe the factors dataset and look for potential missing values and outliers.
+
+```{r observe-factors-data, message=FALSE, warning=FALSE}
+
+#Observe data
+skimr::skim(factors_data)
+
+```
+
+There is no missing value and outliers in the dataset, as reported in the table generated using the `skimr::skim` function.
+
+
+## Factors data preparation
+
+In this section we format the "date" column in R date format, and create a vector with the names of the features columns.
+
+```{r prepare-factors-data, message=FALSE, warning=FALSE}
+
+#Format date as date
+factors_data <- factors_data %>%
+  mutate(
+    date = as.Date(as.character(date), "%Y%m%d"), 
+    month = as.numeric(format(date, "%m")), 
+    year = as.numeric(format(date, "%Y"))
+    ) 
+
+#Define vector of columns containing variables
+factor_variables <- c("mktrf", "smb", "hml", "rf", "umd")
+
+```
+
+## Computing summary statistics on factor data
+
+We use `ggpairs` to explore the relationship between the model variables.
+
+```{r ggpairs-mutlcollinearity-check, fig.width=10, fig.height=10, message=FALSE, warning=FALSE}
+
+factors_data %>% 
+  select("mktrf", "smb", "hml", "rf", "umd") %>% 
+  ggpairs(aes(alpha = 0.1))+
+  theme_bw()
+
+```
+
+UMD and HML display a fairly high negative correlation of -0.594, meaning that the higher the momentum, the lower the spread in return between high and low book-to-market ratio firms. 
+This is due to the construction of the momentum factor, if the price falls sharply, the momentum factor decreases, but the stock get cheaper and better in terms of value and book-to-market ratio. Therefore, a value + momentum portfolio will always outperform a value-oriented or momentum-oriented portfolio.
+
+The HML and UMD factors exhibit a significant, respectively positive and negative correlation with Mktrf, the market premium. 
+If the stock return and market premium increase, the book-to-market ratio decreases and the gap between high and low book-to-market stocks returns gets wider. The increase in market premium also means that the stocks will converge, thus narrowing the spread between top and bottom performing stocks, denoted by UMD.
+
+Finally, the positive but lower correlation between SMB and Mktrf means that even though market capitalization of small and big companies will increase due to the improved market premium, the impact on stock returns tends to be higher for smaller firms.
+
+## Stocks selection
+
+To assess the Carhart model across multiple sectors, we will pick the S&P500's most valued firms for each of the 11 sectors listed in the MSCI's GICS classification, using the Factset screener.
+
+```{r stock_pick, message=FALSE, warning=FALSE}
+
+stock_pick_df <- data.frame(
+  Industry = c("Communication Services", "Consumer Discretionary", 
+               "Consumer Staples", "Energy", "Financials", "Health Care", 
+               "Industrials", "Information Technology", "Materials", 
+               "Real Estate", "Utilities"), 
+  Company = c("Alphabet (GOOGL)", "Amazon (AMZN)", "Walmart (WMT)", 
+              "Exxon Mobil (XOM)", "Berkshire Hathaway (BRK)", 
+              "Johnson & Johnson (JNJ)", "UPS (UPS)", "Apple (AAPL)", 
+              "Linde (LIN)", "American Tower Corporation (AMT)", 
+              "NextEra (NEE)"))
+
+colnames(stock_pick_df) <- c("Industry", "Company (Stock ticker)")
+
+formattable(stock_pick_df, align = c("l", "l"), 
+            list(`Industry` = 
+                   formatter("span", style = ~ style(color = "grey", 
+                                                     font.weight = "bold"))))
+
+```
+
+## Loading stocks data and looking at raw data
+
+The stocks close prices time series are extracted from Factset in CSV format. The prices used are adjusted for stock splits and dividends.
+
+```{r load-stocks-data, message=FALSE, warning=FALSE}
+
+stocks_data <- vroom("stocks_data.csv") %>% 
+    clean_names()
+
+```
+
+We first observe the factors dataset and look for potential missing values and outliers.
+
+```{r observe-stocks-data, message=FALSE, warning=FALSE}
+
+#Observe data
+skimr::skim(stocks_data)
+
+```
+There is no missing value and outliers in the dataset, as reported in the table generated using the `skimr::skim` function.
+
+
+## Stocks data preparation
+
+In this section we format the "date" column in R date format, sort the dataframe by date, and create a vector with the stocks tickers. We also compute daily log-returns and remove the NA values created during the log-returns calculation.
+
+```{r prepare-stocks-data, message=FALSE, warning=FALSE}
+
+#Format date as date and sort dataframe by date for returns calculation
+stocks_data <- stocks_data %>%
+  mutate(
+    date = as.Date(as.character(date), "%Y%m%d"), 
+    month = as.numeric(format(date, "%m")), 
+    year = as.numeric(format(date, "%Y"))
+    ) %>%
+  arrange(date)
+
+#Define vector of columns containing variables
+stocks_variables <- c("googl", "amzn", "aapl", "amt", "brk", 
+                      "nee", "ups", "wmt", "xom", "jnj", "lin")
+
+#Compute log returns
+stocks_data_log <- stocks_data %>%
+  mutate(
+    googl = c(NA, diff(log(googl), lag=1)), 
+    amzn = c(NA, diff(log(amzn), lag=1)), 
+    aapl = c(NA, diff(log(aapl), lag=1)), 
+    amt = c(NA, diff(log(amt), lag=1)), 
+    brk = c(NA, diff(log(brk), lag=1)), 
+    nee = c(NA, diff(log(nee), lag=1)), 
+    ups = c(NA, diff(log(ups), lag=1)), 
+    wmt = c(NA, diff(log(wmt), lag=1)), 
+    xom = c(NA, diff(log(xom), lag=1)), 
+    jnj = c(NA, diff(log(jnj), lag=1)), 
+    lin = c(NA, diff(log(lin), lag=1)), 
+    )
+
+#Remove NAs generated in first row due to log returns
+stocks_data_log <- na.omit(stocks_data_log)
+
+```
+
+# Linear regression
+
+## Regression data preparation
+
+To simplify the process of creating the regression data for each stock and year, we create 2 functions to prepare the regression dataset for the specified stock and year.
+
+```{r create-regression-data, message=FALSE, warning=FALSE}
+
+#Create function to extract 1 year data for specified year, ending end of June
+get_year_data <- function(data_source, selected_year) {
+  data_indexes <- which(
+    (
+      #July to December of previous year
+      data_source$year == (selected_year-1) & data_source$month %in% seq(7,12)  
+    )
+    | 
+    (
+      #January to June of current year
+      data_source$year == selected_year & data_source$month %in% seq(1,6)  
+    ))
+  selected_data <- data_source[data_indexes,]
+  return(selected_data)
+}
+
+#Create function to create regression dataframe for specified stock and year
+get_reg_data <- function(factors_data_source, stocks_data_source, stock, year) {
+  #Get factors data for specified year
+  factors_data_year <- get_year_data(factors_data_source, year)
+  #Get stocks returns for specified year
+  stock_data_year <- get_year_data(stocks_data_source, year)
+  #Add the specified stock returns to factors data via left_join on date column
+  reg_data <- left_join(factors_data_year, 
+                        stock_data_year[, c("date", stock)], 
+                        by = c("date"))
+  #Drop date, year and month columns, not needed anymore
+  reg_data <- reg_data[,-which(names(reg_data) %in% c("date", "year", "month"))]
+  return(reg_data)
+}
+
+```
+
+
+## Regression model
+
+As in the previous section, we create 3 functions to more efficiently get the regression statistics for multiple stocks and years.
+
+```{r regression-model, message=FALSE, warning=FALSE}
+
+#Create function to perform regression for specified stock and year
+get_reg_model <- function(factors_data_source, stocks_data_source, stock, year) {
+  model_data <- get_reg_data(factors_data_source, stocks_data_source, stock, year)
+  regression_model <- lm(paste(stock, "~ ."), data = model_data)
+  reg_coeffs <- summary(regression_model)$coefficients[,1]
+  reg_pvals <- summary(regression_model)$coefficients[,4]
+  reg_rsq <- summary(regression_model)$r.squared
+  reg_adjrsq <- summary(regression_model)$adj.r.squared
+  return(list(regression_model, reg_coeffs, reg_pvals, reg_rsq, reg_adjrsq))
+}
+
+#Create function to collect regressions results for a specified stock on multiple years
+aggregate_regs <- function(factors_data_source, stocks_data_source, stock, years) {
+  #Lists to store regressions coefficients, pvalues, rsquared and adjusted rsquared
+  coeffs_list <- list()
+  pvals_list <- list()
+  rsq_list <- list()
+  adjrsq_list <- list()
+  for (year in years) {
+    #Run regression
+    reg <- get_reg_model(factors_data_source, stocks_data_source, stock, year)
+    #Add regressions coefficients, pvalues, rsquared and adjusted rsquared to lists
+    coeffs_list[[as.character(year)]] <- reg[[2]]
+    pvals_list[[as.character(year)]] <- reg[[3]]
+    rsq_list[[as.character(year)]] <- reg[[4]]
+    adjrsq_list[[as.character(year)]] <- reg[[5]]
+  }
+  #Merge previously created lists into dataframes
+  reg_coeffs <- data.frame(do.call(rbind, coeffs_list))
+  reg_pvals <- data.frame(do.call(rbind, pvals_list))
+  reg_rsq <- setNames(data.frame(do.call(rbind, rsq_list)), c("rsq"))
+  reg_adjrsq <- setNames(data.frame(do.call(rbind, adjrsq_list)), c("adj_rsq"))
+  #Define rownames (contains years) as year column
+  reg_coeffs <- tibble::rownames_to_column(reg_coeffs, "year")
+  reg_coeffs$stock <- stock
+  reg_pvals <- tibble::rownames_to_column(reg_pvals, "year")
+  reg_pvals$stock <- stock
+  reg_rsq <- tibble::rownames_to_column(reg_rsq, "year")
+  reg_rsq$stock <- stock
+  reg_adjrsq <- tibble::rownames_to_column(reg_adjrsq, "year")
+  reg_adjrsq$stock <- stock
+  return(list(reg_coeffs, reg_pvals, reg_rsq, reg_adjrsq))
+}
+
+#Create function to merge regression coefficients, pvalues and statistics
+#for multiple stocks
+agg_regs_multistocks <- function(factors_data_source, stocks_data_source, 
+                                 stocks, years_range) {
+  #Lists to store regressions coefficients, pvalues, rsquared and adjusted rsquared
+  coeffs_list <- list()
+  pvals_list <- list()
+  rsq_list <- list()
+  adjrsq_list <- list()
+  for (stock in stocks) {
+    #Run regression
+    aggregate_reg <- aggregate_regs(factors_data_source, stocks_data_source, 
+                                    stock, years_range)
+    #Add regressions coefficients, pvalues, rsquared and adjusted rsquared to lists
+    coeffs_list[[stock]] <- aggregate_reg[[1]]
+    pvals_list[[stock]] <- aggregate_reg[[2]]
+    rsq_list[[stock]] <- aggregate_reg[[3]]
+    adjrsq_list[[stock]] <- aggregate_reg[[4]]
+  }
+  #Merge previously created lists into dataframes
+  reg_coeffs <- data.frame(do.call(rbind, coeffs_list))
+  reg_pvals <- data.frame(do.call(rbind, pvals_list))
+  reg_rsq <- setNames(data.frame(do.call(rbind, rsq_list)), c("year", "rsq", "stock"))
+  reg_adjrsq <- setNames(data.frame(do.call(rbind, adjrsq_list)), c("year", "adj_rsq", 
+                                                                    "stock"))
+  #Define rownames as numeric index
+  rownames(reg_coeffs) <- 1:nrow(reg_coeffs)
+  rownames(reg_pvals) <- 1:nrow(reg_pvals)
+  rownames(reg_rsq) <- 1:nrow(reg_rsq)
+  rownames(reg_adjrsq) <- 1:nrow(reg_adjrsq)
+  return(list(reg_coeffs, reg_pvals, reg_rsq, reg_adjrsq))
+}
+
+```
+
+
+## Regressions results and interpretation
+
+In this section we will fit a linear model for each of the 11 selected stocks, from 2007 (July 1st 2016 to June 30th 2017) to 2020 (July 1st 2019 to June 30th 2020). Then, we will plot the R squared of the fitted models.
+
+```{r regressions-all, message=FALSE, warning=FALSE}
+
+#Perform regressions on all stocks for 2007-2020
+agg_regs_allstocks <- agg_regs_multistocks(factors_data, stocks_data_log, 
+                                           stocks_variables, seq(2007, 2020))
+agg_regs_coeffs <- agg_regs_allstocks[[1]]
+agg_regs_pvals <- agg_regs_allstocks[[2]]
+agg_regs_rsq <- agg_regs_allstocks[[3]]
+agg_regs_adjrsq <- agg_regs_allstocks[[4]]
+
+```
+
+
+```{r r-squared-plots, fig.height=40, fig.width=10, message=FALSE, warning=FALSE}
+
+#Plot R squared of regressions
+ggplot(agg_regs_rsq, aes(year, rsq, group=1)) +
+  geom_line() +
+  theme_bw() +
+  geom_smooth() +
+  facet_wrap(~stock, ncol = 1) +
+   labs(title = "R-squared of Carhart factors regression",
+    y = "Regression R-squared",
+    x = "Year") +
+    theme(
+    plot.title = element_text(hjust = 0.5, size = 12, face = "bold")
+  ) 
+
+```
+
+We observe a positive trend for the regression R squared in all stocks. Furthermore, the R-Squared increased in 2020 for all of them except Amazon.
+
+```{r r-squared-table, message=FALSE, warning=FALSE}
+
+#Create table of Rsquared
+rsq_table <- spread(agg_regs_rsq, stock, rsq)
+rsq_table$average <- rowMeans(rsq_table[,stocks_variables])
+formattable(rsq_table, 
+            list(`year` = formatter("span", style = ~ style(color = "grey", 
+                                                     font.weight = "bold")),
+              area(col = 2:length(rsq_table)) ~ function(x) percent(x, digits = 2)))
+
+```
+We also notice that the R-Squared is very high for all of the 11 stocks, ranging from 48.79% to 89.32%. To observe the aggregated evolution of R-Squared, we compute and plot its average annual value.
+
+```{r avg-r-squared, message=FALSE, warning=FALSE}
+
+#Compute average R squared per year
+agg_regs_rsq_avg <- agg_regs_rsq %>%
+  group_by(year) %>%
+  summarise(avg_rsq = mean(rsq))
+
+#Compute average adjusted R squared per year
+agg_regs_adjrsq_avg <- agg_regs_adjrsq %>%
+  group_by(year) %>%
+  summarise(avg_adjrsq = mean(adj_rsq))
+
+ggplot(agg_regs_rsq_avg, aes(year, avg_rsq, group=1)) +
+  geom_line() +
+  theme_bw()  +
+  geom_smooth() +
+   labs(title = "Average annual R-squared of the selected stocks from 2007 to 2020",
+    y = "Regression R-squared",
+    x = "Year") +
+    theme(
+    plot.title = element_text(hjust = 0.5, size = 12, face = "bold")
+  )
+
+```
+The S-shaped trendline shows a steep increase of R-squared in the pre 2008 crisis period, slow decrease during recovery and new rise starting in 2017. The minimum average R-squared value is 27.12% in 2007, and the maximum is 68.72% in 2020.
+
+We observe that the Carhart four-factor model performs better during Covid-19 than in other periods. The second highest R-squared is 61.77% in 2009, suggesting an overall higher precision during market crisis.
+
+The Carhart factors mathematic definition expresses the relationship between the returns of different security classes. It does not include forward-looking indicators or macro-economic variables which remain key drivers of the economy. 
+As a consequence, when a global crisis affects all companies, vanishing their specific characteristics and correlation with specific KPIs, market forces and interaction between SMB, HML and momentum tend to prevail.
+
+Finally, the positive trend since 2007 can be explained by the expansion of algorithmic trading, and factor-based investment strategies. [With around only 10% of US equity trading done by traditional investors](https://www.ft.com/content/fdc1c064-1142-11e9-a581-4ff78404524e), high-frequency trading, betting on micro-variations driven by market movements rather than long-term views can explain the increasing ability of factors in explaining securities returns.

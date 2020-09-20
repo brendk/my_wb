@@ -1,0 +1,1404 @@
+---
+title: "How accurate is the Carhart four-factor model at explaining securities returns in Covid-19 times ?"
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    toc: yes
+    toc_float: yes
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="executive-summary" class="section level1">
+<h1>Executive Summary</h1>
+<p>The goal of this project is to assess the ability of the Carhart 4 factor model in explaining stock returns. More precisely, we want to quantify the impact of Covid-19 on this accuracy.
+Are financial markets driven by factors during the pandemic ? What about previous crisis ?</p>
+</div>
+<div id="the-carhart-four-factor-model" class="section level1">
+<h1>The Carhart four-factor model</h1>
+<p>The Carhart four-factor model is a multifactor model used to explain securities returns.
+It is an extension to the Fama-French three-factor model, designed by Eugene Fama and Keneth French in 1992, including an additional factor: the momentum.</p>
+<center>
+<p><span class="math inline">\(R_{i} = R_{f} + \beta_{1} \cdot Mkt + \beta_{2} \cdot HML + \beta_{3} \cdot SMB + \beta_{4} \cdot MOM + \epsilon\)</span></p>
+</center>
+<p>The four factors in the Carhart model are:</p>
+<ul>
+<li>Mkt: Excess return on the market portfolio</li>
+<li>HML: “High minus low”, spread in return between value stocks and growth stocks, (high vs low book-to-market ratios)</li>
+<li>SMB: “Small minus big”, excess return of small vs high market capitalization firms</li>
+<li>MOM: Also called UMD (“up minus down”), momentum factor, premium of highest performing firms on lowest performing ones</li>
+</ul>
+</div>
+<div id="research-methodology" class="section level1">
+<h1>Research methodology</h1>
+<p>As the equation of the Carhart four-factor model is a linear polynomial, we will use a linear regression model to assess its ability in explaining securities returns.
+After downloading and cleaning the four factors data, we will select several stocks on which to assess the model.
+The R squared of the regression model will be used in our assessment, as it denotes the percentage of the stocks returns variance explained by the four factors.</p>
+</div>
+<div id="importation-relevant-libraries" class="section level1">
+<h1>Importation relevant libraries</h1>
+<pre class="r"><code>library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(janitor)
+library(vroom)
+library(formattable)</code></pre>
+</div>
+<div id="exploratory-data-analysis" class="section level1">
+<h1>Exploratory Data Analysis</h1>
+<div id="loading-factors-data-and-looking-at-raw-data" class="section level2">
+<h2>Loading factors data and looking at raw data</h2>
+<p>The factors data was downloaded in CSV format from the Fama-French database hosted on the WRDS platform.
+Along with the four factors, our dataset also include the <span class="math inline">\(R_{f}\)</span> variable, the risk-free interest rate.
+Due to the update frequency, only factor data up to June 2020 was available at time of study. We will therefore define 1 year as 12 months up to the end of June (2020 data will be from July 1st 2019 to June 30th 2020).</p>
+<pre class="r"><code>factors_data &lt;- vroom(&quot;factors_data.csv&quot;) %&gt;% 
+    clean_names()</code></pre>
+<p>We first observe the factors dataset and look for potential missing values and outliers.</p>
+<pre class="r"><code>#Observe data
+skimr::skim(factors_data)</code></pre>
+<table>
+<caption><span id="tab:observe-factors-data">Table 1: </span>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">factors_data</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">3900</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">numeric</td>
+<td align="left">6</td>
+</tr>
+<tr class="odd">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">date</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">20123214</td>
+<td align="right">44768.44</td>
+<td align="right">2.01e+07</td>
+<td align="right">20081114</td>
+<td align="right">20120928</td>
+<td align="right">2.02e+07</td>
+<td align="right">2.02e+07</td>
+<td align="left">▇▇▇▇▇</td>
+</tr>
+<tr class="even">
+<td align="left">mktrf</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.01</td>
+<td align="right">-1.20e-01</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1.00e-02</td>
+<td align="right">1.10e-01</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">smb</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.01</td>
+<td align="right">-4.00e-02</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.00e+00</td>
+<td align="right">6.00e-02</td>
+<td align="left">▁▇▇▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">hml</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.01</td>
+<td align="right">-5.00e-02</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.00e+00</td>
+<td align="right">5.00e-02</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">rf</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0.00e+00</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.00e+00</td>
+<td align="right">0.00e+00</td>
+<td align="left">▇▂▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">umd</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.01</td>
+<td align="right">-8.00e-02</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.00e+00</td>
+<td align="right">7.00e-02</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+</tbody>
+</table>
+<p>There is no missing value and outliers in the dataset, as reported in the table generated using the <code>skimr::skim</code> function.</p>
+</div>
+<div id="factors-data-preparation" class="section level2">
+<h2>Factors data preparation</h2>
+<p>In this section we format the “date” column in R date format, and create a vector with the names of the features columns.</p>
+<pre class="r"><code>#Format date as date
+factors_data &lt;- factors_data %&gt;%
+  mutate(
+    date = as.Date(as.character(date), &quot;%Y%m%d&quot;), 
+    month = as.numeric(format(date, &quot;%m&quot;)), 
+    year = as.numeric(format(date, &quot;%Y&quot;))
+    ) 
+
+#Define vector of columns containing variables
+factor_variables &lt;- c(&quot;mktrf&quot;, &quot;smb&quot;, &quot;hml&quot;, &quot;rf&quot;, &quot;umd&quot;)</code></pre>
+</div>
+<div id="computing-summary-statistics-on-factor-data" class="section level2">
+<h2>Computing summary statistics on factor data</h2>
+<p>We use <code>ggpairs</code> to explore the relationship between the model variables.</p>
+<pre class="r"><code>factors_data %&gt;% 
+  select(&quot;mktrf&quot;, &quot;smb&quot;, &quot;hml&quot;, &quot;rf&quot;, &quot;umd&quot;) %&gt;% 
+  ggpairs(aes(alpha = 0.1))+
+  theme_bw()</code></pre>
+<p><img src="/blogs/ff_carhart_files/figure-html/ggpairs-mutlcollinearity-check-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>UMD and HML display a fairly high negative correlation of -0.594, meaning that the higher the momentum, the lower the spread in return between high and low book-to-market ratio firms.
+This is due to the construction of the momentum factor, if the price falls sharply, the momentum factor decreases, but the stock get cheaper and better in terms of value and book-to-market ratio. Therefore, a value + momentum portfolio will always outperform a value-oriented or momentum-oriented portfolio.</p>
+<p>The HML and UMD factors exhibit a significant, respectively positive and negative correlation with Mktrf, the market premium.
+If the stock return and market premium increase, the book-to-market ratio decreases and the gap between high and low book-to-market stocks returns gets wider. The increase in market premium also means that the stocks will converge, thus narrowing the spread between top and bottom performing stocks, denoted by UMD.</p>
+<p>Finally, the positive but lower correlation between SMB and Mktrf means that even though market capitalization of small and big companies will increase due to the improved market premium, the impact on stock returns tends to be higher for smaller firms.</p>
+</div>
+<div id="stocks-selection" class="section level2">
+<h2>Stocks selection</h2>
+<p>To assess the Carhart model across multiple sectors, we will pick the S&amp;P500’s most valued firms for each of the 11 sectors listed in the MSCI’s GICS classification, using the Factset screener.</p>
+<pre class="r"><code>stock_pick_df &lt;- data.frame(
+  Industry = c(&quot;Communication Services&quot;, &quot;Consumer Discretionary&quot;, 
+               &quot;Consumer Staples&quot;, &quot;Energy&quot;, &quot;Financials&quot;, &quot;Health Care&quot;, 
+               &quot;Industrials&quot;, &quot;Information Technology&quot;, &quot;Materials&quot;, 
+               &quot;Real Estate&quot;, &quot;Utilities&quot;), 
+  Company = c(&quot;Alphabet (GOOGL)&quot;, &quot;Amazon (AMZN)&quot;, &quot;Walmart (WMT)&quot;, 
+              &quot;Exxon Mobil (XOM)&quot;, &quot;Berkshire Hathaway (BRK)&quot;, 
+              &quot;Johnson &amp; Johnson (JNJ)&quot;, &quot;UPS (UPS)&quot;, &quot;Apple (AAPL)&quot;, 
+              &quot;Linde (LIN)&quot;, &quot;American Tower Corporation (AMT)&quot;, 
+              &quot;NextEra (NEE)&quot;))
+
+colnames(stock_pick_df) &lt;- c(&quot;Industry&quot;, &quot;Company (Stock ticker)&quot;)
+
+formattable(stock_pick_df, align = c(&quot;l&quot;, &quot;l&quot;), 
+            list(`Industry` = 
+                   formatter(&quot;span&quot;, style = ~ style(color = &quot;grey&quot;, 
+                                                     font.weight = &quot;bold&quot;))))</code></pre>
+<table class="table table-condensed">
+<thead>
+<tr>
+<th style="text-align:left;">
+Industry
+</th>
+<th style="text-align:left;">
+Company (Stock ticker)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Communication Services</span>
+</td>
+<td style="text-align:left;">
+Alphabet (GOOGL)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Consumer Discretionary</span>
+</td>
+<td style="text-align:left;">
+Amazon (AMZN)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Consumer Staples </span>
+</td>
+<td style="text-align:left;">
+Walmart (WMT)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Energy </span>
+</td>
+<td style="text-align:left;">
+Exxon Mobil (XOM)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Financials </span>
+</td>
+<td style="text-align:left;">
+Berkshire Hathaway (BRK)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Health Care </span>
+</td>
+<td style="text-align:left;">
+Johnson &amp; Johnson (JNJ)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Industrials </span>
+</td>
+<td style="text-align:left;">
+UPS (UPS)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Information Technology</span>
+</td>
+<td style="text-align:left;">
+Apple (AAPL)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Materials </span>
+</td>
+<td style="text-align:left;">
+Linde (LIN)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Real Estate </span>
+</td>
+<td style="text-align:left;">
+American Tower Corporation (AMT)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<span style="color: grey; font-weight: bold">Utilities </span>
+</td>
+<td style="text-align:left;">
+NextEra (NEE)
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="loading-stocks-data-and-looking-at-raw-data" class="section level2">
+<h2>Loading stocks data and looking at raw data</h2>
+<p>The stocks close prices time series are extracted from Factset in CSV format. The prices used are adjusted for stock splits and dividends.</p>
+<pre class="r"><code>stocks_data &lt;- vroom(&quot;stocks_data.csv&quot;) %&gt;% 
+    clean_names()</code></pre>
+<p>We first observe the factors dataset and look for potential missing values and outliers.</p>
+<pre class="r"><code>#Observe data
+skimr::skim(stocks_data)</code></pre>
+<table>
+<caption><span id="tab:observe-stocks-data">Table 2: </span>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">stocks_data</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">3778</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">12</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">numeric</td>
+<td align="left">12</td>
+</tr>
+<tr class="odd">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">date</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2.01e+07</td>
+<td align="right">43451.7</td>
+<td align="right">2.01e+07</td>
+<td align="right">2.01e+07</td>
+<td align="right">2.01e+07</td>
+<td align="right">2.02e+07</td>
+<td align="right">20200918</td>
+<td align="left">▇▇▇▇▇</td>
+</tr>
+<tr class="even">
+<td align="left">googl</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">5.67e+02</td>
+<td align="right">380.8</td>
+<td align="right">1.29e+02</td>
+<td align="right">2.58e+02</td>
+<td align="right">4.01e+02</td>
+<td align="right">8.15e+02</td>
+<td align="right">1717</td>
+<td align="left">▇▃▂▂▁</td>
+</tr>
+<tr class="odd">
+<td align="left">amzn</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">5.88e+02</td>
+<td align="right">702.4</td>
+<td align="right">2.61e+01</td>
+<td align="right">8.81e+01</td>
+<td align="right">2.65e+02</td>
+<td align="right">8.10e+02</td>
+<td align="right">3531</td>
+<td align="left">▇▁▂▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">wmt</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">7.00e+01</td>
+<td align="right">21.6</td>
+<td align="right">4.23e+01</td>
+<td align="right">5.20e+01</td>
+<td align="right">6.81e+01</td>
+<td align="right">7.89e+01</td>
+<td align="right">148</td>
+<td align="left">▇▆▂▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">xom</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">7.84e+01</td>
+<td align="right">12.4</td>
+<td align="right">3.14e+01</td>
+<td align="right">7.07e+01</td>
+<td align="right">8.08e+01</td>
+<td align="right">8.71e+01</td>
+<td align="right">104</td>
+<td align="left">▁▁▅▇▂</td>
+</tr>
+<tr class="even">
+<td align="left">brk</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1.20e+02</td>
+<td align="right">52.0</td>
+<td align="right">4.60e+01</td>
+<td align="right">7.63e+01</td>
+<td align="right">1.03e+02</td>
+<td align="right">1.61e+02</td>
+<td align="right">230</td>
+<td align="left">▇▃▃▂▃</td>
+</tr>
+<tr class="odd">
+<td align="left">jnj</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">9.07e+01</td>
+<td align="right">30.7</td>
+<td align="right">4.66e+01</td>
+<td align="right">6.35e+01</td>
+<td align="right">7.93e+01</td>
+<td align="right">1.19e+02</td>
+<td align="right">156</td>
+<td align="left">▇▂▃▃▂</td>
+</tr>
+<tr class="even">
+<td align="left">ups</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">8.75e+01</td>
+<td align="right">21.5</td>
+<td align="right">3.83e+01</td>
+<td align="right">7.17e+01</td>
+<td align="right">8.38e+01</td>
+<td align="right">1.05e+02</td>
+<td align="right">166</td>
+<td align="left">▂▇▇▂▁</td>
+</tr>
+<tr class="odd">
+<td align="left">aapl</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2.37e+01</td>
+<td align="right">21.2</td>
+<td align="right">1.76e+00</td>
+<td align="right">6.46e+00</td>
+<td align="right">1.89e+01</td>
+<td align="right">3.22e+01</td>
+<td align="right">134</td>
+<td align="left">▇▃▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">lin</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1.13e+02</td>
+<td align="right">41.7</td>
+<td align="right">4.60e+01</td>
+<td align="right">8.21e+01</td>
+<td align="right">1.10e+02</td>
+<td align="right">1.31e+02</td>
+<td align="right">260</td>
+<td align="left">▆▇▂▂▁</td>
+</tr>
+<tr class="odd">
+<td align="left">amt</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">8.96e+01</td>
+<td align="right">59.4</td>
+<td align="right">2.01e+01</td>
+<td align="right">4.17e+01</td>
+<td align="right">7.47e+01</td>
+<td align="right">1.14e+02</td>
+<td align="right">271</td>
+<td align="left">▇▅▂▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">nee</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">9.98e+01</td>
+<td align="right">58.7</td>
+<td align="right">3.71e+01</td>
+<td align="right">5.52e+01</td>
+<td align="right">7.56e+01</td>
+<td align="right">1.26e+02</td>
+<td align="right">296</td>
+<td align="left">▇▃▂▁▁</td>
+</tr>
+</tbody>
+</table>
+<p>There is no missing value and outliers in the dataset, as reported in the table generated using the <code>skimr::skim</code> function.</p>
+</div>
+<div id="stocks-data-preparation" class="section level2">
+<h2>Stocks data preparation</h2>
+<p>In this section we format the “date” column in R date format, sort the dataframe by date, and create a vector with the stocks tickers. We also compute daily log-returns and remove the NA values created during the log-returns calculation.</p>
+<pre class="r"><code>#Format date as date and sort dataframe by date for returns calculation
+stocks_data &lt;- stocks_data %&gt;%
+  mutate(
+    date = as.Date(as.character(date), &quot;%Y%m%d&quot;), 
+    month = as.numeric(format(date, &quot;%m&quot;)), 
+    year = as.numeric(format(date, &quot;%Y&quot;))
+    ) %&gt;%
+  arrange(date)
+
+#Define vector of columns containing variables
+stocks_variables &lt;- c(&quot;googl&quot;, &quot;amzn&quot;, &quot;aapl&quot;, &quot;amt&quot;, &quot;brk&quot;, 
+                      &quot;nee&quot;, &quot;ups&quot;, &quot;wmt&quot;, &quot;xom&quot;, &quot;jnj&quot;, &quot;lin&quot;)
+
+#Compute log returns
+stocks_data_log &lt;- stocks_data %&gt;%
+  mutate(
+    googl = c(NA, diff(log(googl), lag=1)), 
+    amzn = c(NA, diff(log(amzn), lag=1)), 
+    aapl = c(NA, diff(log(aapl), lag=1)), 
+    amt = c(NA, diff(log(amt), lag=1)), 
+    brk = c(NA, diff(log(brk), lag=1)), 
+    nee = c(NA, diff(log(nee), lag=1)), 
+    ups = c(NA, diff(log(ups), lag=1)), 
+    wmt = c(NA, diff(log(wmt), lag=1)), 
+    xom = c(NA, diff(log(xom), lag=1)), 
+    jnj = c(NA, diff(log(jnj), lag=1)), 
+    lin = c(NA, diff(log(lin), lag=1)), 
+    )
+
+#Remove NAs generated in first row due to log returns
+stocks_data_log &lt;- na.omit(stocks_data_log)</code></pre>
+</div>
+</div>
+<div id="linear-regression" class="section level1">
+<h1>Linear regression</h1>
+<div id="regression-data-preparation" class="section level2">
+<h2>Regression data preparation</h2>
+<p>To simplify the process of creating the regression data for each stock and year, we create 2 functions to prepare the regression dataset for the specified stock and year.</p>
+<pre class="r"><code>#Create function to extract 1 year data for specified year, ending end of June
+get_year_data &lt;- function(data_source, selected_year) {
+  data_indexes &lt;- which(
+    (
+      #July to December of previous year
+      data_source$year == (selected_year-1) &amp; data_source$month %in% seq(7,12)  
+    )
+    | 
+    (
+      #January to June of current year
+      data_source$year == selected_year &amp; data_source$month %in% seq(1,6)  
+    ))
+  selected_data &lt;- data_source[data_indexes,]
+  return(selected_data)
+}
+
+#Create function to create regression dataframe for specified stock and year
+get_reg_data &lt;- function(factors_data_source, stocks_data_source, stock, year) {
+  #Get factors data for specified year
+  factors_data_year &lt;- get_year_data(factors_data_source, year)
+  #Get stocks returns for specified year
+  stock_data_year &lt;- get_year_data(stocks_data_source, year)
+  #Add the specified stock returns to factors data via left_join on date column
+  reg_data &lt;- left_join(factors_data_year, 
+                        stock_data_year[, c(&quot;date&quot;, stock)], 
+                        by = c(&quot;date&quot;))
+  #Drop date, year and month columns, not needed anymore
+  reg_data &lt;- reg_data[,-which(names(reg_data) %in% c(&quot;date&quot;, &quot;year&quot;, &quot;month&quot;))]
+  return(reg_data)
+}</code></pre>
+</div>
+<div id="regression-model" class="section level2">
+<h2>Regression model</h2>
+<p>As in the previous section, we create 3 functions to more efficiently get the regression statistics for multiple stocks and years.</p>
+<pre class="r"><code>#Create function to perform regression for specified stock and year
+get_reg_model &lt;- function(factors_data_source, stocks_data_source, stock, year) {
+  model_data &lt;- get_reg_data(factors_data_source, stocks_data_source, stock, year)
+  regression_model &lt;- lm(paste(stock, &quot;~ .&quot;), data = model_data)
+  reg_coeffs &lt;- summary(regression_model)$coefficients[,1]
+  reg_pvals &lt;- summary(regression_model)$coefficients[,4]
+  reg_rsq &lt;- summary(regression_model)$r.squared
+  reg_adjrsq &lt;- summary(regression_model)$adj.r.squared
+  return(list(regression_model, reg_coeffs, reg_pvals, reg_rsq, reg_adjrsq))
+}
+
+#Create function to collect regressions results for a specified stock on multiple years
+aggregate_regs &lt;- function(factors_data_source, stocks_data_source, stock, years) {
+  #Lists to store regressions coefficients, pvalues, rsquared and adjusted rsquared
+  coeffs_list &lt;- list()
+  pvals_list &lt;- list()
+  rsq_list &lt;- list()
+  adjrsq_list &lt;- list()
+  for (year in years) {
+    #Run regression
+    reg &lt;- get_reg_model(factors_data_source, stocks_data_source, stock, year)
+    #Add regressions coefficients, pvalues, rsquared and adjusted rsquared to lists
+    coeffs_list[[as.character(year)]] &lt;- reg[[2]]
+    pvals_list[[as.character(year)]] &lt;- reg[[3]]
+    rsq_list[[as.character(year)]] &lt;- reg[[4]]
+    adjrsq_list[[as.character(year)]] &lt;- reg[[5]]
+  }
+  #Merge previously created lists into dataframes
+  reg_coeffs &lt;- data.frame(do.call(rbind, coeffs_list))
+  reg_pvals &lt;- data.frame(do.call(rbind, pvals_list))
+  reg_rsq &lt;- setNames(data.frame(do.call(rbind, rsq_list)), c(&quot;rsq&quot;))
+  reg_adjrsq &lt;- setNames(data.frame(do.call(rbind, adjrsq_list)), c(&quot;adj_rsq&quot;))
+  #Define rownames (contains years) as year column
+  reg_coeffs &lt;- tibble::rownames_to_column(reg_coeffs, &quot;year&quot;)
+  reg_coeffs$stock &lt;- stock
+  reg_pvals &lt;- tibble::rownames_to_column(reg_pvals, &quot;year&quot;)
+  reg_pvals$stock &lt;- stock
+  reg_rsq &lt;- tibble::rownames_to_column(reg_rsq, &quot;year&quot;)
+  reg_rsq$stock &lt;- stock
+  reg_adjrsq &lt;- tibble::rownames_to_column(reg_adjrsq, &quot;year&quot;)
+  reg_adjrsq$stock &lt;- stock
+  return(list(reg_coeffs, reg_pvals, reg_rsq, reg_adjrsq))
+}
+
+#Create function to merge regression coefficients, pvalues and statistics
+#for multiple stocks
+agg_regs_multistocks &lt;- function(factors_data_source, stocks_data_source, 
+                                 stocks, years_range) {
+  #Lists to store regressions coefficients, pvalues, rsquared and adjusted rsquared
+  coeffs_list &lt;- list()
+  pvals_list &lt;- list()
+  rsq_list &lt;- list()
+  adjrsq_list &lt;- list()
+  for (stock in stocks) {
+    #Run regression
+    aggregate_reg &lt;- aggregate_regs(factors_data_source, stocks_data_source, 
+                                    stock, years_range)
+    #Add regressions coefficients, pvalues, rsquared and adjusted rsquared to lists
+    coeffs_list[[stock]] &lt;- aggregate_reg[[1]]
+    pvals_list[[stock]] &lt;- aggregate_reg[[2]]
+    rsq_list[[stock]] &lt;- aggregate_reg[[3]]
+    adjrsq_list[[stock]] &lt;- aggregate_reg[[4]]
+  }
+  #Merge previously created lists into dataframes
+  reg_coeffs &lt;- data.frame(do.call(rbind, coeffs_list))
+  reg_pvals &lt;- data.frame(do.call(rbind, pvals_list))
+  reg_rsq &lt;- setNames(data.frame(do.call(rbind, rsq_list)), c(&quot;year&quot;, &quot;rsq&quot;, &quot;stock&quot;))
+  reg_adjrsq &lt;- setNames(data.frame(do.call(rbind, adjrsq_list)), c(&quot;year&quot;, &quot;adj_rsq&quot;, 
+                                                                    &quot;stock&quot;))
+  #Define rownames as numeric index
+  rownames(reg_coeffs) &lt;- 1:nrow(reg_coeffs)
+  rownames(reg_pvals) &lt;- 1:nrow(reg_pvals)
+  rownames(reg_rsq) &lt;- 1:nrow(reg_rsq)
+  rownames(reg_adjrsq) &lt;- 1:nrow(reg_adjrsq)
+  return(list(reg_coeffs, reg_pvals, reg_rsq, reg_adjrsq))
+}</code></pre>
+</div>
+<div id="regressions-results-and-interpretation" class="section level2">
+<h2>Regressions results and interpretation</h2>
+<p>In this section we will fit a linear model for each of the 11 selected stocks, from 2007 (July 1st 2016 to June 30th 2017) to 2020 (July 1st 2019 to June 30th 2020). Then, we will plot the R squared of the fitted models.</p>
+<pre class="r"><code>#Perform regressions on all stocks for 2007-2020
+agg_regs_allstocks &lt;- agg_regs_multistocks(factors_data, stocks_data_log, 
+                                           stocks_variables, seq(2007, 2020))
+agg_regs_coeffs &lt;- agg_regs_allstocks[[1]]
+agg_regs_pvals &lt;- agg_regs_allstocks[[2]]
+agg_regs_rsq &lt;- agg_regs_allstocks[[3]]
+agg_regs_adjrsq &lt;- agg_regs_allstocks[[4]]</code></pre>
+<pre class="r"><code>#Plot R squared of regressions
+ggplot(agg_regs_rsq, aes(year, rsq, group=1)) +
+  geom_line() +
+  theme_bw() +
+  geom_smooth() +
+  facet_wrap(~stock, ncol = 1) +
+   labs(title = &quot;R-squared of Carhart factors regression&quot;,
+    y = &quot;Regression R-squared&quot;,
+    x = &quot;Year&quot;) +
+    theme(
+    plot.title = element_text(hjust = 0.5, size = 12, face = &quot;bold&quot;)
+  ) </code></pre>
+<p><img src="/blogs/ff_carhart_files/figure-html/r-squared-plots-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>We observe a positive trend for the regression R squared in all stocks. Furthermore, the R-Squared increased in 2020 for all of them except Amazon.</p>
+<pre class="r"><code>#Create table of Rsquared
+rsq_table &lt;- spread(agg_regs_rsq, stock, rsq)
+rsq_table$average &lt;- rowMeans(rsq_table[,stocks_variables])
+formattable(rsq_table, 
+            list(`year` = formatter(&quot;span&quot;, style = ~ style(color = &quot;grey&quot;, 
+                                                     font.weight = &quot;bold&quot;)),
+              area(col = 2:length(rsq_table)) ~ function(x) percent(x, digits = 2)))</code></pre>
+<table class="table table-condensed">
+<thead>
+<tr>
+<th style="text-align:right;">
+year
+</th>
+<th style="text-align:right;">
+aapl
+</th>
+<th style="text-align:right;">
+amt
+</th>
+<th style="text-align:right;">
+amzn
+</th>
+<th style="text-align:right;">
+brk
+</th>
+<th style="text-align:right;">
+googl
+</th>
+<th style="text-align:right;">
+jnj
+</th>
+<th style="text-align:right;">
+lin
+</th>
+<th style="text-align:right;">
+nee
+</th>
+<th style="text-align:right;">
+ups
+</th>
+<th style="text-align:right;">
+wmt
+</th>
+<th style="text-align:right;">
+xom
+</th>
+<th style="text-align:right;">
+average
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2007</span>
+</td>
+<td style="text-align:right;">
+13.66%
+</td>
+<td style="text-align:right;">
+33.24%
+</td>
+<td style="text-align:right;">
+22.47%
+</td>
+<td style="text-align:right;">
+16.51%
+</td>
+<td style="text-align:right;">
+25.57%
+</td>
+<td style="text-align:right;">
+34.02%
+</td>
+<td style="text-align:right;">
+41.61%
+</td>
+<td style="text-align:right;">
+26.26%
+</td>
+<td style="text-align:right;">
+22.48%
+</td>
+<td style="text-align:right;">
+31.21%
+</td>
+<td style="text-align:right;">
+31.30%
+</td>
+<td style="text-align:right;">
+27.12%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2008</span>
+</td>
+<td style="text-align:right;">
+42.64%
+</td>
+<td style="text-align:right;">
+41.95%
+</td>
+<td style="text-align:right;">
+31.81%
+</td>
+<td style="text-align:right;">
+7.51%
+</td>
+<td style="text-align:right;">
+33.81%
+</td>
+<td style="text-align:right;">
+34.31%
+</td>
+<td style="text-align:right;">
+58.02%
+</td>
+<td style="text-align:right;">
+35.73%
+</td>
+<td style="text-align:right;">
+52.16%
+</td>
+<td style="text-align:right;">
+48.20%
+</td>
+<td style="text-align:right;">
+68.83%
+</td>
+<td style="text-align:right;">
+41.36%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2009</span>
+</td>
+<td style="text-align:right;">
+55.26%
+</td>
+<td style="text-align:right;">
+61.56%
+</td>
+<td style="text-align:right;">
+53.59%
+</td>
+<td style="text-align:right;">
+44.11%
+</td>
+<td style="text-align:right;">
+63.37%
+</td>
+<td style="text-align:right;">
+66.55%
+</td>
+<td style="text-align:right;">
+74.35%
+</td>
+<td style="text-align:right;">
+62.87%
+</td>
+<td style="text-align:right;">
+67.12%
+</td>
+<td style="text-align:right;">
+48.59%
+</td>
+<td style="text-align:right;">
+82.09%
+</td>
+<td style="text-align:right;">
+61.77%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2010</span>
+</td>
+<td style="text-align:right;">
+52.10%
+</td>
+<td style="text-align:right;">
+50.30%
+</td>
+<td style="text-align:right;">
+20.16%
+</td>
+<td style="text-align:right;">
+37.90%
+</td>
+<td style="text-align:right;">
+46.60%
+</td>
+<td style="text-align:right;">
+51.71%
+</td>
+<td style="text-align:right;">
+58.23%
+</td>
+<td style="text-align:right;">
+35.92%
+</td>
+<td style="text-align:right;">
+56.56%
+</td>
+<td style="text-align:right;">
+27.93%
+</td>
+<td style="text-align:right;">
+65.46%
+</td>
+<td style="text-align:right;">
+45.71%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2011</span>
+</td>
+<td style="text-align:right;">
+44.90%
+</td>
+<td style="text-align:right;">
+20.05%
+</td>
+<td style="text-align:right;">
+42.72%
+</td>
+<td style="text-align:right;">
+71.22%
+</td>
+<td style="text-align:right;">
+40.09%
+</td>
+<td style="text-align:right;">
+42.51%
+</td>
+<td style="text-align:right;">
+57.10%
+</td>
+<td style="text-align:right;">
+40.65%
+</td>
+<td style="text-align:right;">
+59.68%
+</td>
+<td style="text-align:right;">
+32.73%
+</td>
+<td style="text-align:right;">
+58.84%
+</td>
+<td style="text-align:right;">
+46.41%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2012</span>
+</td>
+<td style="text-align:right;">
+51.99%
+</td>
+<td style="text-align:right;">
+61.52%
+</td>
+<td style="text-align:right;">
+36.35%
+</td>
+<td style="text-align:right;">
+82.80%
+</td>
+<td style="text-align:right;">
+48.03%
+</td>
+<td style="text-align:right;">
+66.60%
+</td>
+<td style="text-align:right;">
+76.19%
+</td>
+<td style="text-align:right;">
+62.75%
+</td>
+<td style="text-align:right;">
+78.08%
+</td>
+<td style="text-align:right;">
+34.34%
+</td>
+<td style="text-align:right;">
+79.16%
+</td>
+<td style="text-align:right;">
+61.62%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2013</span>
+</td>
+<td style="text-align:right;">
+18.60%
+</td>
+<td style="text-align:right;">
+31.25%
+</td>
+<td style="text-align:right;">
+32.08%
+</td>
+<td style="text-align:right;">
+69.24%
+</td>
+<td style="text-align:right;">
+30.07%
+</td>
+<td style="text-align:right;">
+47.81%
+</td>
+<td style="text-align:right;">
+47.22%
+</td>
+<td style="text-align:right;">
+35.27%
+</td>
+<td style="text-align:right;">
+40.37%
+</td>
+<td style="text-align:right;">
+23.30%
+</td>
+<td style="text-align:right;">
+69.49%
+</td>
+<td style="text-align:right;">
+40.43%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2014</span>
+</td>
+<td style="text-align:right;">
+11.83%
+</td>
+<td style="text-align:right;">
+24.60%
+</td>
+<td style="text-align:right;">
+40.16%
+</td>
+<td style="text-align:right;">
+65.07%
+</td>
+<td style="text-align:right;">
+38.07%
+</td>
+<td style="text-align:right;">
+44.88%
+</td>
+<td style="text-align:right;">
+47.26%
+</td>
+<td style="text-align:right;">
+24.08%
+</td>
+<td style="text-align:right;">
+41.58%
+</td>
+<td style="text-align:right;">
+37.40%
+</td>
+<td style="text-align:right;">
+38.18%
+</td>
+<td style="text-align:right;">
+37.56%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2015</span>
+</td>
+<td style="text-align:right;">
+38.85%
+</td>
+<td style="text-align:right;">
+28.93%
+</td>
+<td style="text-align:right;">
+24.61%
+</td>
+<td style="text-align:right;">
+69.94%
+</td>
+<td style="text-align:right;">
+43.26%
+</td>
+<td style="text-align:right;">
+53.91%
+</td>
+<td style="text-align:right;">
+54.10%
+</td>
+<td style="text-align:right;">
+33.17%
+</td>
+<td style="text-align:right;">
+37.64%
+</td>
+<td style="text-align:right;">
+33.78%
+</td>
+<td style="text-align:right;">
+63.69%
+</td>
+<td style="text-align:right;">
+43.81%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2016</span>
+</td>
+<td style="text-align:right;">
+48.62%
+</td>
+<td style="text-align:right;">
+55.51%
+</td>
+<td style="text-align:right;">
+42.43%
+</td>
+<td style="text-align:right;">
+80.54%
+</td>
+<td style="text-align:right;">
+46.07%
+</td>
+<td style="text-align:right;">
+58.32%
+</td>
+<td style="text-align:right;">
+59.11%
+</td>
+<td style="text-align:right;">
+21.88%
+</td>
+<td style="text-align:right;">
+60.49%
+</td>
+<td style="text-align:right;">
+19.89%
+</td>
+<td style="text-align:right;">
+58.28%
+</td>
+<td style="text-align:right;">
+50.10%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2017</span>
+</td>
+<td style="text-align:right;">
+30.94%
+</td>
+<td style="text-align:right;">
+20.42%
+</td>
+<td style="text-align:right;">
+42.60%
+</td>
+<td style="text-align:right;">
+67.09%
+</td>
+<td style="text-align:right;">
+51.81%
+</td>
+<td style="text-align:right;">
+19.24%
+</td>
+<td style="text-align:right;">
+32.95%
+</td>
+<td style="text-align:right;">
+25.37%
+</td>
+<td style="text-align:right;">
+29.69%
+</td>
+<td style="text-align:right;">
+10.70%
+</td>
+<td style="text-align:right;">
+34.07%
+</td>
+<td style="text-align:right;">
+33.17%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2018</span>
+</td>
+<td style="text-align:right;">
+46.54%
+</td>
+<td style="text-align:right;">
+18.99%
+</td>
+<td style="text-align:right;">
+51.71%
+</td>
+<td style="text-align:right;">
+82.95%
+</td>
+<td style="text-align:right;">
+68.79%
+</td>
+<td style="text-align:right;">
+42.79%
+</td>
+<td style="text-align:right;">
+52.29%
+</td>
+<td style="text-align:right;">
+12.16%
+</td>
+<td style="text-align:right;">
+31.75%
+</td>
+<td style="text-align:right;">
+18.67%
+</td>
+<td style="text-align:right;">
+44.71%
+</td>
+<td style="text-align:right;">
+42.85%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2019</span>
+</td>
+<td style="text-align:right;">
+60.95%
+</td>
+<td style="text-align:right;">
+11.22%
+</td>
+<td style="text-align:right;">
+72.84%
+</td>
+<td style="text-align:right;">
+70.17%
+</td>
+<td style="text-align:right;">
+62.54%
+</td>
+<td style="text-align:right;">
+26.51%
+</td>
+<td style="text-align:right;">
+28.85%
+</td>
+<td style="text-align:right;">
+12.42%
+</td>
+<td style="text-align:right;">
+48.51%
+</td>
+<td style="text-align:right;">
+26.87%
+</td>
+<td style="text-align:right;">
+51.15%
+</td>
+<td style="text-align:right;">
+42.91%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+<span style="color: grey; font-weight: bold">2020</span>
+</td>
+<td style="text-align:right;">
+83.69%
+</td>
+<td style="text-align:right;">
+60.99%
+</td>
+<td style="text-align:right;">
+59.95%
+</td>
+<td style="text-align:right;">
+89.32%
+</td>
+<td style="text-align:right;">
+79.48%
+</td>
+<td style="text-align:right;">
+60.93%
+</td>
+<td style="text-align:right;">
+77.53%
+</td>
+<td style="text-align:right;">
+63.25%
+</td>
+<td style="text-align:right;">
+54.24%
+</td>
+<td style="text-align:right;">
+48.79%
+</td>
+<td style="text-align:right;">
+77.79%
+</td>
+<td style="text-align:right;">
+68.72%
+</td>
+</tr>
+</tbody>
+</table>
+<p>We also notice that the R-Squared is very high for all of the 11 stocks, ranging from 48.79% to 89.32%. To observe the aggregated evolution of R-Squared, we compute and plot its average annual value.</p>
+<pre class="r"><code>#Compute average R squared per year
+agg_regs_rsq_avg &lt;- agg_regs_rsq %&gt;%
+  group_by(year) %&gt;%
+  summarise(avg_rsq = mean(rsq))
+
+#Compute average adjusted R squared per year
+agg_regs_adjrsq_avg &lt;- agg_regs_adjrsq %&gt;%
+  group_by(year) %&gt;%
+  summarise(avg_adjrsq = mean(adj_rsq))
+
+ggplot(agg_regs_rsq_avg, aes(year, avg_rsq, group=1)) +
+  geom_line() +
+  theme_bw()  +
+  geom_smooth() +
+   labs(title = &quot;Average annual R-squared of the selected stocks from 2007 to 2020&quot;,
+    y = &quot;Regression R-squared&quot;,
+    x = &quot;Year&quot;) +
+    theme(
+    plot.title = element_text(hjust = 0.5, size = 12, face = &quot;bold&quot;)
+  )</code></pre>
+<p><img src="/blogs/ff_carhart_files/figure-html/avg-r-squared,%20fig2-1.png" width="648" style="display: block; margin: auto;" />
+The S-shaped trendline shows a steep increase of R-squared in the pre 2008 crisis period, slow decrease during recovery and new rise starting in 2017. The minimum average R-squared value is 27.12% in 2007, and the maximum is 68.72% in 2020.</p>
+<p>We observe that the Carhart four-factor model performs better during Covid-19 than in other periods. The second highest R-squared is 61.77% in 2009, suggesting an overall higher precision during market crisis.</p>
+<p>The Carhart factors mathematic definition expresses the relationship between the returns of different security classes. It does not include forward-looking indicators or macro-economic variables which remain key drivers of the economy.
+As a consequence, when a global crisis affects all companies, vanishing their specific characteristics and correlation with specific KPIs, market forces and interaction between SMB, HML and momentum tend to prevail.</p>
+<p>Finally, the positive trend since 2007 can be explained by the expansion of algorithmic trading, and factor-based investment strategies. <a href="https://www.ft.com/content/fdc1c064-1142-11e9-a581-4ff78404524e">With around only 10% of US equity trading done by traditional investors</a>, high-frequency trading, betting on micro-variations driven by market movements rather than long-term views can explain the increasing ability of factors in explaining securities returns.</p>
+</div>
+</div>

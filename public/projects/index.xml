@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Portfolio website for Brendan Kermorvan</title>
+    <link>https://brendk.netlify.app/projects/</link>
+    <description>Recent content in Projects on Portfolio website for Brendan Kermorvan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 20 Sep 2020 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://brendk.netlify.app/projects/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>How accurate is the Carhart four-factor model at explaining securities returns in Covid-19 times ?</title>
+      <link>https://brendk.netlify.app/projects/ff_carhart/</link>
+      <pubDate>Sun, 20 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://brendk.netlify.app/projects/ff_carhart/</guid>
+      <description>Executive SummaryThe goal of this project is to assess the ability of the Carhart 4 factor model in explaining stock returns. More precisely, we want to quantify the impact of Covid-19 on this accuracy.Are financial markets driven by factors during the pandemic ? What about previous crisis ?
+The Carhart four-factor modelThe Carhart four-factor model is a multifactor model used to explain securities returns.It is an extension to the Fama-French three-factor model, designed by Eugene Fama and Keneth French in 1992, including an additional factor: the momentum.</description>
+    </item>
+    
+  </channel>
+</rss>
