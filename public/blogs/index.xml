@@ -78,5 +78,16 @@ As it seems to be a considerable difference, we will investigate whether women e
 Shall we find a significant difference between the two groups, we will look at potential explanations to determine if other factors than gender can explain this difference.</description>
     </item>
     
+    <item>
+      <title>Physical activity benefits on US high schoolers health</title>
+      <link>https://brendk.netlify.app/blogs/high_schoolers_health/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://brendk.netlify.app/blogs/high_schoolers_health/</guid>
+      <description>We will analyse the Youth Risk Behavior Surveillance System (YRBSS) survey, released every two years by the Centers for Disease Control and Prevention conduct. This dataset contains several features about American high schoolers that will help us analyze health patterns.
+First we have a look at the dataset to get a feel for missing values, summary statistics of numerical variables, and a very rough histogram.
+data(yrbss)glimpse(yrbss)## Rows: 13,583## Columns: 13## $ age &amp;lt;int&amp;gt; 14, 14, 15, 15, 15, 15, 15, 14, 15, 15, 15.</description>
+    </item>
+    
   </channel>
 </rss>

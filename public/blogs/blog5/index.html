@@ -123,44 +123,44 @@ glimpse(nyt_mask_survey)</code></pre>
 # The id field is the FIPS code for the county
 county_map %&gt;% 
   sample_n(5)</code></pre>
-<pre><code>##      long      lat  order  hole piece            group    id
-## 1 1497603 -1028086  42566 FALSE     1 0500000US13139.1 13139
-## 2  258965 -1226505 134582 FALSE     1 0500000US40085.1 40085
-## 3 1636511  -653703 182758 FALSE     1 0500000US54055.1 54055
-## 4   57970 -1087669 136092 FALSE     1 0500000US40149.1 40149
-## 5  766863   156620 190233 FALSE     1 0500000US55125.1 55125</code></pre>
+<pre><code>##       long      lat  order  hole piece            group    id
+## 1  -202270  -219350 111805 FALSE     1 0500000US31161.1 31161
+## 2   862570   173679 187913 FALSE     1 0500000US55041.1 55041
+## 3   904272 -1325666  98008 FALSE     1 0500000US28089.1 28089
+## 4  1320073  -652200  62818 FALSE     1 0500000US21005.1 21005
+## 5 -1441378   134610 137211 FALSE     1 0500000US41023.1 41023</code></pre>
 <pre class="r"><code>county_data %&gt;%
     sample_n(5)</code></pre>
-<pre><code>##      id                   name state census_region      pop_dens   pop_dens4
-## 1 02070 Dillingham Census Area    AK          West [    0,   10) [  0,   17)
-## 2 13199      Meriwether County    GA         South [   10,   50) [ 17,   45)
-## 3 17129          Menard County    IL       Midwest [   10,   50) [ 17,   45)
-## 4 48297        Live Oak County    TX         South [   10,   50) [  0,   17)
-## 5 13000                     11    GA         South [  100,  500) [118,71672]
-##     pop_dens6   pct_black      pop female white black travel_time land_area
-## 1 [  0,    9) [ 0.0, 2.0)     4988   48.1  18.4   0.4         8.7     18569
-## 2 [ 25,   45) [25.0,50.0)    21198   52.1  58.7  39.1        30.2       501
-## 3 [ 25,   45) [ 0.0, 2.0)    12570   51.4  97.1   1.1        27.0       314
-## 4 [  9,   25) [ 2.0, 5.0)    12091   46.0  92.4   4.8        27.3      1040
-## 5 [ 82,  215) [25.0,50.0) 10097343   51.1  62.5  31.4        27.0     57513
+<pre><code>##      id               name state census_region      pop_dens   pop_dens4
+## 1 16031      Cassia County    ID          West [    0,   10) [  0,   17)
+## 2 51085     Hanover County    VA         South [  100,  500) [118,71672]
+## 3 37095        Hyde County    NC         South [    0,   10) [  0,   17)
+## 4 32015      Lander County    NV          West [    0,   10) [  0,   17)
+## 5 22103 St. Tammany Parish    LA         South [  100,  500) [118,71672]
+##     pop_dens6   pct_black    pop female white black travel_time land_area
+## 1 [  9,   25) [ 0.0, 2.0)  23540   49.3  95.4   0.6        16.3      2565
+## 2 [215,71672] [ 5.0,10.0) 101918   51.0  86.9   9.6        25.3       469
+## 3 [  9,   25) [25.0,50.0)   5676   45.0  67.8  30.0        19.9       613
+## 4 [  0,    9) [ 0.0, 2.0)   6009   48.8  90.9   1.0        28.1      5490
+## 5 [215,71672] [10.0,15.0) 245829   51.4  84.4  12.0        31.8       846
 ##   hh_income su_gun4 su_gun6  fips votes_dem_2016 votes_gop_2016
-## 1     54150 [11,54] [12,54]  2070          93003         130413
-## 2     37333 [ 8,11) [ 8,10) 13199           3800           5216
-## 3     58190 [ 5, 8) [ 4, 7) 17129           1808           4230
-## 4     42829 [11,54] [10,12) 48297            739           3450
-## 5     49179    &lt;NA&gt;    &lt;NA&gt; 13000             NA             NA
+## 1     42039 [ 8,11) [ 8,10) 16031           1036           5949
+## 2     75070 [ 8,11) [ 8,10) 51085          19360          39592
+## 3     42279 [ 0, 5) [ 0, 4) 37095            956           1275
+## 4     72742 [11,54] [12,54] 32015            403           1828
+## 5     60799 [ 8,11) [ 8,10) 22103          27716          90914
 ##   total_votes_2016 per_dem_2016 per_gop_2016 diff_2016 per_dem_2012
-## 1           246588        0.377        0.529     37410           NA
-## 2             9181        0.414        0.568      1416        0.467
-## 3             6423        0.281        0.659      2422        0.341
-## 4             4267        0.173        0.809      2711        0.223
-## 5               NA           NA           NA        NA           NA
+## 1             8178        0.127        0.727      4913        0.130
+## 2            62313        0.311        0.635     20232        0.310
+## 3             2273        0.421        0.561       319        0.491
+## 4             2413        0.167        0.758      1425        0.247
+## 5           124389        0.223        0.731     63198        0.228
 ##   per_gop_2012 diff_2012 winner partywinner16 winner12 partywinner12 flipped
-## 1           NA        NA  Trump    Republican   Romney    Republican      No
-## 2        0.524       527  Trump    Republican   Romney    Republican      No
-## 3        0.642      1849  Trump    Republican   Romney    Republican      No
-## 4        0.768      2238  Trump    Republican   Romney    Republican      No
-## 5           NA        NA   &lt;NA&gt;          &lt;NA&gt;     &lt;NA&gt;          &lt;NA&gt;    &lt;NA&gt;</code></pre>
+## 1        0.853      6057  Trump    Republican   Romney    Republican      No
+## 2        0.677     21637  Trump    Republican   Romney    Republican      No
+## 3        0.502        26  Trump    Republican   Romney    Republican      No
+## 4        0.730      1046  Trump    Republican   Romney    Republican      No
+## 5        0.750     58987  Trump    Republican   Romney    Republican      No</code></pre>
 <pre class="r"><code>glimpse(county_data)</code></pre>
 <pre><code>## Rows: 3,195
 ## Columns: 32

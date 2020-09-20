@@ -92,10 +92,10 @@ disqusShortname = ""
     # Display your showcases here.
     
     [[params.tiles.showcase]]
-      title = "NYT Masks"
-      subtitle = "How does mask use acceptance vary in the US ?"
+      title = "Physical activity benefits on US high schoolers health"
+      subtitle = "An analysis of the relationship between health and physical activity using the Youth Risk Behavior Surveillance System (YRBSS) survey"
       image = "pic11.jpg"
-      url = "blogs/blog5"
+      url = "blogs/high_schoolers_health"
 
     [[params.tiles.showcase]]
       title = "Carhart four-factor model in Covid-19 times"
