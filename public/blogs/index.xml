@@ -12,18 +12,6 @@
     
     
     <item>
-      <title>&lt;center&gt; How accurate is the Carhart four-factor model at explaining &lt;/center&gt;
-&lt;center&gt; securities returns in Covid-19 times ? Looooo &lt;/center&gt;
-</title>
-      <link>https://brendk.netlify.app/blogs/ff_carhart/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://brendk.netlify.app/blogs/ff_carhart/</guid>
-      <description>Executive SummaryThe goal of this project is to assess the ability of the Carhart 4 factor model in explaining stock returns. More precisely, we want to quantify the impact of Covid-19 on this accuracy.Are financial markets driven by factors during the pandemic ? What about previous crisis ?
-The Carhart four-factor modelThe Carhart four-factor model is a multifactor model used to explain securities returns.It is an extension to the Fama-French three-factor model, designed by Eugene Fama and Keneth French in 1992, including an additional factor: the momentum.</description>
-    </item>
-    
-    <item>
       <title>Is climate change real ?</title>
       <link>https://brendk.netlify.app/blogs/climate_change/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
@@ -52,6 +40,16 @@ Shall we find a significant difference between the two groups, we will look at p
       <description>We will analyse the Youth Risk Behavior Surveillance System (YRBSS) survey, released every two years by the Centers for Disease Control and Prevention conduct. This dataset contains several features about American high schoolers that will help us analyze health patterns.
 First we have a look at the dataset to get a feel for missing values, summary statistics of numerical variables, and a very rough histogram.
 data(yrbss)glimpse(yrbss)## Rows: 13,583## Columns: 13## $ age &amp;lt;int&amp;gt; 14, 14, 15, 15, 15, 15, 15, 14, 15, 15, 15.</description>
+    </item>
+    
+    <item>
+      <title>The Carhart four-factor model in Covid-19 times</title>
+      <link>https://brendk.netlify.app/blogs/ff_carhart/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://brendk.netlify.app/blogs/ff_carhart/</guid>
+      <description>Executive SummaryThe goal of this project is to assess the ability of the Carhart 4 factor model in explaining stock returns. More precisely, we want to quantify the impact of Covid-19 on this accuracy.Are financial markets driven by factors during the pandemic ? What about previous crisis ?
+The Carhart four-factor modelThe Carhart four-factor model is a multifactor model used to explain securities returns.It is an extension to the Fama-French three-factor model, designed by Eugene Fama and Keneth French in 1992, including an additional factor: the momentum.</description>
     </item>
     
   </channel>

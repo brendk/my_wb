@@ -53,10 +53,6 @@
   </url>
   
   <url>
-    <loc>https://brendk.netlify.app/blogs/ff_carhart/</loc>
-  </url>
-  
-  <url>
     <loc>https://brendk.netlify.app/blogs/climate_change/</loc>
   </url>
   
@@ -66,6 +62,10 @@
   
   <url>
     <loc>https://brendk.netlify.app/blogs/high_schoolers_health/</loc>
+  </url>
+  
+  <url>
+    <loc>https://brendk.netlify.app/blogs/ff_carhart/</loc>
   </url>
   
 </urlset>
