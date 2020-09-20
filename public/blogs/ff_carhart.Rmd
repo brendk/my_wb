@@ -1,5 +1,7 @@
 ---
-title: "How accurate is the Carhart four-factor model at explaining securities returns in Covid-19 times ?"
+title: |
+  |How accurate is the Carhart four-factor model at explaining 
+  |securities returns in Covid-19 times ?
 output:
   html_document:
     theme: flatly

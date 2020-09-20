@@ -93,7 +93,7 @@ disqusShortname = ""
     
     [[params.tiles.showcase]]
       title = "Is climate change real ?"
-      subtitle = "Using NASA data to analyze global warming"
+      subtitle = "Using NASA data to fact-check American politicians claims"
       image = "climate.jpg"
       url = "blogs/climate_change"
 
@@ -105,7 +105,7 @@ disqusShortname = ""
 
     [[params.tiles.showcase]]
       title = "Pay discrimination at Omega Group PLC"
-      subtitle = "How to explain the difference between men and women executives salaries at Omega Group PLC ?"
+      subtitle = "How can we explain the difference between men and women executives salaries at Omega Group PLC ?"
       image = "omega.jpg"
       url = "blogs/Omega"
 
