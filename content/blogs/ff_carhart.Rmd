@@ -370,7 +370,7 @@ agg_regs_adjrsq <- agg_regs_allstocks[[4]]
 ```
 
 
-```{r r-squared-plots, fig.height=40, fig.width=10, message=FALSE, warning=FALSE}
+```{r r-squared-plots, fig.height=40, fig.width=15, message=FALSE, warning=FALSE}
 
 #Plot R squared of regressions
 ggplot(agg_regs_rsq, aes(year, rsq, group=1)) +
@@ -402,7 +402,7 @@ formattable(rsq_table,
 ```
 We also notice that the R-Squared is very high for all of the 11 stocks, ranging from 48.79% to 89.32%. To observe the aggregated evolution of R-Squared, we compute and plot its average annual value.
 
-```{r avg-r-squared, fig2, message=FALSE, warning=FALSE}
+```{r avg-r-squared, fig2, message=FALSE, warning=FALSE, fig.width=15, fig.height=10}
 
 #Compute average R squared per year
 agg_regs_rsq_avg <- agg_regs_rsq %>%

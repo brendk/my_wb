@@ -812,7 +812,7 @@ ggplot(agg_regs_rsq, aes(year, rsq, group=1)) +
     theme(
     plot.title = element_text(hjust = 0.5, size = 12, face = &quot;bold&quot;)
   ) </code></pre>
-<p><img src="/blogs/ff_carhart_files/figure-html/r-squared-plots-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/ff_carhart_files/figure-html/r-squared-plots-1.png" width="1440" style="display: block; margin: auto;" /></p>
 <p>We observe a positive trend for the regression R squared in all stocks. Furthermore, the R-Squared increased in 2020 for all of them except Amazon.</p>
 <pre class="r"><code>#Create table of Rsquared
 rsq_table &lt;- spread(agg_regs_rsq, stock, rsq)
@@ -1463,7 +1463,7 @@ ggplot(agg_regs_rsq_avg, aes(year, avg_rsq, group=1)) +
     theme(
     plot.title = element_text(hjust = 0.5, size = 12, face = &quot;bold&quot;)
   )</code></pre>
-<p><img src="/blogs/ff_carhart_files/figure-html/avg-r-squared,%20fig2-1.png" width="648" style="display: block; margin: auto;" />
+<p><img src="/blogs/ff_carhart_files/figure-html/avg-r-squared,%20fig2-1.png" width="1440" style="display: block; margin: auto;" />
 The S-shaped trendline shows a steep increase of R-squared in the pre 2008 crisis period, slow decrease during recovery and new rise starting in 2017. The minimum average R-squared value is 27.12% in 2007, and the maximum is 68.72% in 2020.</p>
 <p>We observe that the Carhart four-factor model performs better during Covid-19 than in other periods. The second highest R-squared is 61.77% in 2009, suggesting an overall higher precision during market crisis.</p>
 <p>The Carhart factors mathematic definition expresses the relationship between the returns of different security classes. It does not include forward-looking indicators or macro-economic variables which remain key drivers of the economy.
